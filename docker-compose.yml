@@ -1,0 +1,23 @@
+version: '3.9'
+services:
+  redis-db:
+    image: redis:7.2-alpine
+    ports:
+      - '16379:6379'
+
+  postgres-db:
+    image: postgres:15.4-alpine
+    ports:
+      - '15432:5432'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123123123
+      POSTGRES_DB: mongo-streamer
+
+  dex:
+    image: dexidp/dex:v2.37.0-alpine
+    volumes:
+      - ./dex/config.yml:/etc/dex/config.docker.yaml:ro
+      - ./dex/dex.db:/etc/dex/dex.db
+    ports:
+      - '5556:5556'

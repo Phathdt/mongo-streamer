@@ -1,0 +1,13 @@
+version: '3'
+
+dotenv: ['.env', '{{.ENV}}/.env.', '{{.HOME}}/.env']
+
+tasks:
+  mongo-streamer:
+    cmds:
+      - go run main.go
+
+  migrate:
+    desc: migrate db
+    cmds:
+      - go run main.go migrate {{.CLI_ARGS}}

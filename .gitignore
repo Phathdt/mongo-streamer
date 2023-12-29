@@ -1,0 +1,13 @@
+
+*
+!*/
+!*.*
+!**/Dockerfile
+
+/.env
+/.idea/
+**/.DS_Store
+/tempo-data
+*/node_modules
+*/.env
+/dex/dex.db
