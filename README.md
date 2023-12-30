@@ -41,13 +41,19 @@ NATS_SUB_URI="nats://localhost:4222"
 
 ```
 
-4. Run the service:
+4. Create a jetstream in nats
+
+```bash
+nats str add demo --config examples/demo.json
+```
+
+5. Run the service:
 
 ```bash
 task mongo-streamer
 ```
 
-5. The project will run at `http://localhost:4000`.
+6. The project will run at `http://localhost:4000`.
 
 ## Contribution
 
