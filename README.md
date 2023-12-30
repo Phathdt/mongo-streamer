@@ -1,8 +1,5 @@
-# mongo-streamer: Golang Authentication Service with OAuth and Dex IDP Support
+# mongo-streamer: Golang streaming change from Mongodb to Nats jetstream
 
-## Description
-
-The mongo-streamer project is an authentication service written in Golang, using PostgreSQL as the database, and Redis for storing session information. The project supports OAuth with Dex IDP, providing flexible and secure authentication capabilities.
 
 ## Getting Started
 
@@ -10,9 +7,9 @@ Use the following guide to get started with mongo-streamer on your machine.
 
 ### Requirements
 
-1. Golang: [Install Golang](https://golang.org/doc/install)
-2. PostgreSQL: [Install PostgreSQL](https://www.postgresql.org/download/)
-3. Redis: [Install Redis](https://redis.io/download)
+1. Golang
+2. Nats
+3. Mongodb
 
 ### Installation
 
@@ -31,11 +28,17 @@ go mod tidy
 
 3. Set up configurations in the `.env` file. Change the values to reflect your configuration:
 
-```
-DB_DSN=postgresql://postgres:123123123@localhost:15432/mongo-streamer?sslmode=disable
-REDIS_URI=redis://localhost:16379
-DEX_CLIENT_ID=mongo-streamer
-DEX_CLIENT_SECRET=c03879da7f12f890a537b3cacef1569a8493c471
+```bash
+APP_ENV="dev"
+COLLECTION_NAME=demo-collection
+DB_NAME=demo-database
+FIBER_PORT=4000
+LOG_LEVEL="trace"
+STREAM_NAME=demo
+FullDocumentBeforeChange="true" # only available for mongodb 6.0
+MONGO_URI="mongodb://localhost:27017"
+NATS_SUB_URI="nats://localhost:4222"
+
 ```
 
 4. Run the service:
@@ -45,88 +48,6 @@ task mongo-streamer
 ```
 
 5. The project will run at `http://localhost:4000`.
-
-## Usage
-
-Certainly! Below is an enhanced usage section with descriptions for the mentioned APIs:
-
-## Usage
-
-The mongo-streamer authentication service provides the following APIs for user authentication:
-
-- **Signup**: Create a new user account.
-
-```http
-POST /auth/signup
-```
-
-Example Request:
-```bash
-curl -X POST http://localhost:4000/auth/signup \
- -H "Content-Type: application/json" \
- -d '{"email": "exampleuser", "password": "secretpassword"}'
-```
-
-- **Login**: Authenticate an existing user.
-
-```http
-POST /auth/login
-```
-
-Example Request:
-```bash
-curl -X POST http://localhost:4000/auth/login \
- -H "Content-Type: application/json" \
- -d '{"email": "exampleuser", "password": "secretpassword"}'
-```
-
-- **OAuth Connect**: Initiate OAuth authentication.
-
-```http
-GET /auth/connect
-```
-
-Example Request:
-```bash
-curl -X GET http://localhost:4000/auth/connect?connector_id=xxx
-```
-
-- **OAuth Callback**: Handle OAuth callback after authentication.
-
-```http
-GET /auth/callback
-```
-
-Example Request:
-```bash
-curl -X GET http://localhost:4000/auth/callback
-```
-
-- **Get User Profile**: Retrieve the user's profile information.
-
-```http
-GET /auth/me
-```
-
-Example Request:
-```bash
-curl -X GET http://localhost:4000/auth/me \
- -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
-```
-
-- **Check Token Validity**: Check the validity of an access token.
-
-```http
-GET /auth/valid
-```
-
-Example Request:
-```bash
-curl -X GET http://localhost:4000/auth/valid \
- -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
-```
-
-Please ensure proper authentication and authorization headers as required by each API. Refer to the [API documentation](API.md) for detailed information on each endpoint.
 
 ## Contribution
 
@@ -149,9 +70,3 @@ The project is distributed under the MIT License - See the [LICENSE](LICENSE) fi
 ## Contact
 
 - If you have any questions or feedback, please contact us via email: phathdt379@gmail.com
-
-## Additional Resources
-
-- [Dex IDP Documentation](https://dexidp.io/docs/)
-- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
-- [Redis Documentation](https://redis.io/documentation)
