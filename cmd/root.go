@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"mongo-streamer/plugins/mongoc"
+	"mongo-streamer/streamer"
 	"os"
 	"time"
 
@@ -22,6 +24,7 @@ func newServiceCtx() sctx.ServiceContext {
 	return sctx.NewServiceContext(
 		sctx.WithName(serviceName),
 		sctx.WithComponent(fiberc.New(common.KeyCompFiber)),
+		sctx.WithComponent(mongoc.New(common.KeyMongo)),
 	)
 }
 
@@ -33,11 +36,21 @@ var rootCmd = &cobra.Command{
 
 		logger := sctx.GlobalLogger().GetLogger("service")
 
-		time.Sleep(time.Second * 5)
+		time.Sleep(time.Second * 1)
 
 		if err := sc.Load(); err != nil {
 			logger.Fatal(err)
 		}
+
+		go func() {
+			s := streamer.New()
+
+			if err := s.Run(sc); err != nil {
+				logger.Error(err)
+
+				os.Exit(1)
+			}
+		}()
 
 		fiberComp := sc.MustGet(common.KeyCompFiber).(fiberc.FiberComponent)
 

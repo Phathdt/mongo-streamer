@@ -13,4 +13,5 @@ func init() {
 
 const (
 	KeyCompFiber = "fiber"
+	KeyMongo     = "mongo"
 )
