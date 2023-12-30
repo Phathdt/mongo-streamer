@@ -44,6 +44,7 @@ func (s *streamer) Run(sc sctx.ServiceContext) error {
 	defer ctx.Done()
 
 	streamName := os.Getenv("STREAM_NAME")
+	fullDocumentBeforeChange := os.Getenv("FullDocumentBeforeChange")
 
 	comp := sc.MustGet(common.KeyMongo).(mongoc.MongoComp)
 	publisher := sc.MustGet(common.KeyNatsPub).(watermillapp.Publisher)
@@ -59,8 +60,11 @@ func (s *streamer) Run(sc sctx.ServiceContext) error {
 
 	// Create a Change Stream with resumeAfter
 	opts := options.ChangeStream().
-		SetFullDocument("updateLookup").
-		SetFullDocumentBeforeChange("whenAvailable")
+		SetFullDocument("updateLookup")
+
+	if fullDocumentBeforeChange == "true" {
+		opts = opts.SetFullDocumentBeforeChange("whenAvailable")
+	}
 
 	if resumeToken != nil {
 		opts = opts.SetResumeAfter(bson.D{{"_data", resumeToken}})
