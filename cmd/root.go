@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"mongo-streamer/plugins/mongoc"
+	"mongo-streamer/plugins/watermillapp/natspub"
 	"mongo-streamer/streamer"
 	"os"
 	"time"
@@ -14,6 +15,8 @@ import (
 	sctx "github.com/phathdt/service-context"
 
 	"github.com/spf13/cobra"
+
+	_ "github.com/joho/godotenv/autoload"
 )
 
 const (
@@ -25,6 +28,7 @@ func newServiceCtx() sctx.ServiceContext {
 		sctx.WithName(serviceName),
 		sctx.WithComponent(fiberc.New(common.KeyCompFiber)),
 		sctx.WithComponent(mongoc.New(common.KeyMongo)),
+		sctx.WithComponent(natspub.New(common.KeyNatsPub)),
 	)
 }
 

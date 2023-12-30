@@ -8,7 +8,9 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"mongo-streamer/plugins/mongoc"
+	"mongo-streamer/plugins/watermillapp"
 	"mongo-streamer/shared/common"
+	"os"
 )
 
 type streamer struct{}
@@ -21,7 +23,10 @@ func (s *streamer) Run(sc sctx.ServiceContext) error {
 	ctx := context.Background()
 	defer ctx.Done()
 
+	streamName := os.Getenv("STREAM_NAME")
+
 	comp := sc.MustGet(common.KeyMongo).(mongoc.MongoComp)
+	publisher := sc.MustGet(common.KeyNatsPub).(watermillapp.Publisher)
 
 	database := comp.GetClient().Database(comp.GetDbName())
 	collection := database.Collection(comp.GetCollectionName())
@@ -33,8 +38,6 @@ func (s *streamer) Run(sc sctx.ServiceContext) error {
 	if err != nil {
 		return err
 	}
-
-	logger := sc.Logger("")
 
 	for stream.Next(ctx) {
 		bsonRaw := stream.Current
@@ -62,7 +65,9 @@ func (s *streamer) Run(sc sctx.ServiceContext) error {
 			return err
 		}
 
-		logger.Info(string(jsonData))
+		if err = publisher.PublishRaw(streamName, jsonData); err != nil {
+			return err
+		}
 	}
 
 	return nil
