@@ -3,7 +3,9 @@ package streamer
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	sctx "github.com/phathdt/service-context"
+	"github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -31,8 +33,8 @@ func (s *streamer) Run(sc sctx.ServiceContext) error {
 	database := comp.GetClient().Database(comp.GetDbName())
 	collection := database.Collection(comp.GetCollectionName())
 
-	//resumeTokenDb := comp.GetClient().Database(fmt.Sprintf("%s-resume-tokens", comp.GetDbName()))
-	//resumeTokenCollection := resumeTokenDb.Collection(comp.GetCollectionName())
+	resumeTokenDb := comp.GetClient().Database(fmt.Sprintf("%s-resume-tokens", comp.GetDbName()))
+	resumeTokenCollection := resumeTokenDb.Collection(comp.GetCollectionName())
 	opts := options.ChangeStream().SetFullDocument("updateLookup").SetFullDocumentBeforeChange("whenAvailable")
 	stream, err := collection.Watch(ctx, mongo.Pipeline{}, opts)
 	if err != nil {
@@ -68,6 +70,19 @@ func (s *streamer) Run(sc sctx.ServiceContext) error {
 		if err = publisher.PublishRaw(streamName, jsonData); err != nil {
 			return err
 		}
+
+		if err = storeResumeToken(bsonMap.ID.Data, resumeTokenCollection); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func storeResumeToken(resumeToken string, collection *mongo.Collection) error {
+	doc := bson.M{"token": resumeToken}
+	if _, err := collection.InsertOne(context.Background(), doc); err != nil {
+		return errors.WithStack(err)
 	}
 
 	return nil
