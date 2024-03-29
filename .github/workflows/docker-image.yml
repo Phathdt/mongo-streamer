@@ -43,6 +43,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/mongo-streamer:latest,${{ secrets.DOCKERHUB_USERNAME }}/mongo-streamer:${{ env.VERSION }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
 
       - name: Verify
         run: echo ${{ steps.docker_build.outputs.digest }}
