@@ -1,10 +1,60 @@
 version: '3.9'
 services:
-  database:
+  mongo1:
+    hostname: mongo1
     image: mongo:7.0.4
-    volumes:
-      - ./data:/data/db
-    restart: always
     ports:
-      - 27017:27017
-    command: ['--replSet', 'dbrs', '--bind_ip_all']
+      - 30001:30001
+    restart: always
+    command: ['--replSet', 'rs0', '--bind_ip_all', '--port', '30001']
+
+  mongo2:
+    hostname: mongo2
+    image: mongo:7.0.4
+    ports:
+      - 30002:30002
+    restart: always
+    command: ['--replSet', 'rs0', '--bind_ip_all', '--port', '30002']
+
+  mongo3:
+    hostname: mongo3
+    image: mongo:7.0.4
+    ports:
+      - 30003:30003
+    restart: always
+    command: ['--replSet', 'rs0', '--bind_ip_all', '--port', '30003']
+
+  # finally, we can define the initialization server
+  # this runs the `rs.initiate` command to intialize
+  # the replica set and connect the three servers to each other
+  mongoinit:
+    image: mongo:7.0.4
+    # this container will exit after executing the command
+    restart: 'no'
+    depends_on:
+      - mongo1
+      - mongo2
+      - mongo3
+    command: >
+      mongosh --host mongo1:30001 --eval
+      '
+      db = (new Mongo("mongo1:30001")).getDB("test");
+      config = {
+      "_id" : "rs0",
+      "members" : [
+        {
+          "_id" : 0,
+          "host" : "mongo1:30001"
+        },
+        {
+          "_id" : 1,
+          "host" : "mongo2:30002"
+        },
+        {
+          "_id" : 2,
+          "host" : "mongo3:30003"
+        }
+      ]
+      };
+      rs.initiate(config);
+      '

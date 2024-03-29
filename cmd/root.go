@@ -2,10 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/phathdt/service-context/component/natspub"
 	"mongo-streamer/plugins/mongoc"
-	"mongo-streamer/plugins/watermillapp/natspub"
 	"mongo-streamer/streamer"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/phathdt/service-context/component/fiberc"
@@ -42,6 +44,8 @@ var rootCmd = &cobra.Command{
 
 		time.Sleep(time.Second * 1)
 
+		NewRouter(sc)
+
 		if err := sc.Load(); err != nil {
 			logger.Fatal(err)
 		}
@@ -56,13 +60,13 @@ var rootCmd = &cobra.Command{
 			}
 		}()
 
-		fiberComp := sc.MustGet(common.KeyCompFiber).(fiberc.FiberComponent)
+		// gracefully shutdown
+		quit := make(chan os.Signal)
+		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+		<-quit
 
-		app := fiberComp.GetApp()
-
-		if err := app.Listen(fmt.Sprintf(":%d", fiberComp.GetPort())); err != nil {
-			logger.Fatal(err)
-		}
+		_ = sc.Stop()
+		logger.Info("Server exited")
 	},
 }
 

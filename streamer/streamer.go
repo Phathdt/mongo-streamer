@@ -4,16 +4,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"mongo-streamer/plugins/mongoc"
+	"mongo-streamer/shared/common"
+	"os"
+
 	sctx "github.com/phathdt/service-context"
+	"github.com/phathdt/service-context/component/natspub"
 	"github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"mongo-streamer/plugins/mongoc"
-	"mongo-streamer/plugins/watermillapp"
-	"mongo-streamer/shared/common"
-	"os"
 )
 
 type streamer struct{}
@@ -43,11 +44,11 @@ func (s *streamer) Run(sc sctx.ServiceContext) error {
 	ctx := context.Background()
 	defer ctx.Done()
 
-	streamName := os.Getenv("STREAM_NAME")
+	subject := os.Getenv("SUBJECT")
 	fullDocumentBeforeChange := os.Getenv("FullDocumentBeforeChange")
 
 	comp := sc.MustGet(common.KeyMongo).(mongoc.MongoComp)
-	publisher := sc.MustGet(common.KeyNatsPub).(watermillapp.Publisher)
+	publisher := sc.MustGet(common.KeyNatsPub).(natspub.Component)
 
 	database := comp.GetClient().Database(comp.GetDbName())
 	collection := database.Collection(comp.GetCollectionName())
@@ -89,7 +90,7 @@ func (s *streamer) Run(sc sctx.ServiceContext) error {
 			return err
 		}
 
-		if err = publisher.PublishRaw(streamName, jsonData); err != nil {
+		if err = publisher.PublishRaw(subject, jsonData); err != nil {
 			return err
 		}
 
